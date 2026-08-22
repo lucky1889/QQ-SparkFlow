@@ -167,10 +167,7 @@ generate_override() {
 
 run_setup_napcat() {
   log "Running setup_napcat.py with python:3.11-slim"
-  run_root docker run --rm -v "$APP_ROOT":/work -w /work python:3.11-slim \
-    python QQSparkFlow/scripts/setup_napcat.py --count "$QQ_ACCOUNT_COUNT" \
-    --token "$ONEBOT_ACCESS_TOKEN" --state-dir /work/state \
-    --users-data /work/QQSparkFlow/usersData.json
+  run_root docker run --rm --volume "${APP_ROOT}:/work" --workdir /work python:3.11-slim python QQSparkFlow/scripts/setup_napcat.py --count "$QQ_ACCOUNT_COUNT" --token "$ONEBOT_ACCESS_TOKEN" --state-dir /work/state --users-data /work/QQSparkFlow/usersData.json
 }
 
 cron_line_for() {
