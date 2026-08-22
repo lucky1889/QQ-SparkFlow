@@ -35,7 +35,7 @@ def onebot11_config(token: str) -> dict:
                     "postEventFormat": "json",
                 }
             ],
-            "wsServers": [
+            "websocketServers": [
                 {
                     "name": "wsServer",
                     "enable": True,
@@ -44,7 +44,7 @@ def onebot11_config(token: str) -> dict:
                     "token": token,
                 }
             ],
-            "wsClients": [],
+            "websocketClients": [],
         },
         "musicSignUrl": "",
         "enableLocalFile2Url": False,
@@ -124,3 +124,4 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
