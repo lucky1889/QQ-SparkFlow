@@ -220,6 +220,7 @@ prepare_runtime_files() {
   set_env_value "$env_file" "ONEBOT_ACCESS_TOKEN" "$ONEBOT_ACCESS_TOKEN"
   set_env_value "$env_file" "PIP_INDEX_URL" "${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
   set_env_value "$env_file" "PIP_TRUSTED_HOST" "${PIP_TRUSTED_HOST:-pypi.tuna.tsinghua.edu.cn}"
+  set_env_value "$env_file" "APT_MIRROR" "${APT_MIRROR:-mirrors.tuna.tsinghua.edu.cn}"
 
   run_root mkdir -p \
     "$APP_ROOT/state/cron" \

@@ -3,6 +3,8 @@ services:
     build:
       context: ./QQSparkFlow
       dockerfile: Dockerfile.server
+      args:
+        APT_MIRROR: ${APT_MIRROR:-mirrors.tuna.tsinghua.edu.cn}
     image: qq-sparkflow:local
     container_name: qq-web
     restart: unless-stopped

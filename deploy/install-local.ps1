@@ -50,6 +50,7 @@ Set-EnvValue $EnvFile 'ONEBOT_ACCESS_TOKEN' $ONEBOT_ACCESS_TOKEN
 Set-EnvValue $EnvFile 'SPARKFLOW_SESSION_COOKIE_SECURE' '0'
 Set-EnvValue $EnvFile 'PIP_INDEX_URL' 'https://pypi.tuna.tsinghua.edu.cn/simple'
 Set-EnvValue $EnvFile 'PIP_TRUSTED_HOST' 'pypi.tuna.tsinghua.edu.cn'
+Set-EnvValue $EnvFile 'APT_MIRROR' 'mirrors.tuna.tsinghua.edu.cn'
 
 Write-Host "[install-local] generating napcat services 1..$QQ_ACCOUNT_COUNT"
 $template = Get-Content -LiteralPath (Join-Path $RepoRoot 'deploy\compose-napcat.template.yml') -Raw
