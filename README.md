@@ -44,6 +44,17 @@ ssh -L 6099:127.0.0.1:6099 user@<服务器IP>
 # 然后浏览器打开 http://127.0.0.1:6099/webui
 ```
 
+## 本机（Windows）部署
+
+需要 Docker Desktop + WSL2：
+
+```powershell
+cd <仓库目录>
+powershell -ExecutionPolicy Bypass -File .\deploy\install-local.ps1
+```
+
+完成后直接访问 `http://localhost:8787`，NapCat 扫码页面在 `http://127.0.0.1:6099/webui`（账号 i 对应端口 `6098+i`）。
+
 ## 架构
 
 ```
@@ -129,4 +140,5 @@ python -m unittest discover -s tests -v
 - OneBot 无法读取 QQ 火花天数；系统保证“我方每日发送”，回复监听用于推断展示。
 - 火花需要双方互动才增长，单方发送不保证一定续上。
 - NapCat 配置 Schema 随版本可能变化；核心协议封装集中在 `core/onebot.py`。
+
 
