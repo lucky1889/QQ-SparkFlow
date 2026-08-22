@@ -90,7 +90,15 @@ async def _listen_account(account: dict) -> None:
                         event = json.loads(raw)
                     except json.JSONDecodeError:
                         continue
-                    if handle_event(account, event):
+                    current = next(
+                        (
+                            item
+                            for item in get_userData(force_reload=True)
+                            if item.get("account_ref") == account.get("account_ref")
+                        ),
+                        account,
+                    )
+                    if handle_event(current, event):
                         logger.info("marked reply from target on account=%s", account_name)
         except asyncio.CancelledError:
             raise
@@ -119,4 +127,5 @@ async def start_reply_listener(account_refs=None) -> None:
             listener.cancel()
         await asyncio.gather(*listeners, return_exceptions=True)
         raise
+
 
