@@ -1,0 +1,42 @@
+services:
+  web:
+    build:
+      context: ./QQSparkFlow
+      dockerfile: Dockerfile.server
+    image: qq-sparkflow:local
+    container_name: qq-web
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      SPARKFLOW_SESSION_COOKIE_SECURE: ${SPARKFLOW_SESSION_COOKIE_SECURE:-0}
+      ONEBOT_ACCESS_TOKEN: ${ONEBOT_ACCESS_TOKEN:-}
+    ports:
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-8787}:8787"
+    command: python main.py --web --host 0.0.0.0 --port 8787
+    volumes:
+      - ./QQSparkFlow:/app
+      - ./QQSparkFlow/logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./state/cron:/host-spool-cron
+    networks: [sparkflow]
+
+  scheduler:
+    image: qq-sparkflow:local
+    container_name: qq-scheduler
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      PYTHONUNBUFFERED: "1"
+      ONEBOT_ACCESS_TOKEN: ${ONEBOT_ACCESS_TOKEN:-}
+    command: sh -c "python /app/scripts/cron_runner.py /host-spool-cron/root & exec python main.py --listen"
+    volumes:
+      - ./QQSparkFlow:/app
+      - ./QQSparkFlow/logs:/app/logs
+      - ./state/cron:/host-spool-cron
+    networks: [sparkflow]
+
+networks:
+  sparkflow:
+    driver: bridge

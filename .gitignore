@@ -1,0 +1,23 @@
+# Runtime state and secrets
+.env
+state/
+docker-compose.override.yml
+QQSparkFlow/config.json
+QQSparkFlow/usersData.json
+QQSparkFlow/webui_settings.json
+QQSparkFlow/webui_users.json
+QQSparkFlow/logs/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

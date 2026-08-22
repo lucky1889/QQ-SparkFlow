@@ -1,0 +1,16 @@
+# Template used by deploy/install-server.sh to append one NapCat service per
+# QQ account. ${I} and ${WEBUI_PORT} are substituted at install time.
+services:
+  napcat-${I}:
+    image: mlikiowa/napcat-docker:latest
+    container_name: napcat-${I}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      ACCOUNT: ${I}
+    ports:
+      - "127.0.0.1:${WEBUI_PORT}:6099"
+    volumes:
+      - ./state/napcat/${I}/QQ:/app/.config/QQ
+      - ./state/napcat/${I}/config:/app/napcat/config
+    networks: [sparkflow]

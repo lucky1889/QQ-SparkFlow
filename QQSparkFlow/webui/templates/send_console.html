@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block nav_key %}send_console{% endblock %}
+{% block title %}发送控制台 | QQ 续火花控制台{% endblock %}
+{% block page_title %}发送控制台{% endblock %}
+{% block page_subtitle %}立即执行 · 补发未发 · 重发失败{% endblock %}
+
+{% block topbar_actions %}
+<a class="ghost-button" href="/">⌂ 返回首页</a>
+{% endblock %}
+
+{% block content %}
+{% set summary = send_console.summary %}
+<section class="console-shell">
+  <section class="metric-grid" aria-label="发送状态汇总">
+    <div class="metric-card">
+      <div class="metric-value">{{ summary.total_targets }}</div>
+      <div class="metric-label">目标总数</div>
+      <div class="metric-help">{{ summary.enabled_accounts }} 个启用账号</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ summary.today_confirmed_targets }}</div>
+      <div class="metric-label">已确认</div>
+      <div class="metric-help">今日已发</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ summary.today_replied_targets }}</div>
+      <div class="metric-label">已回复</div>
+      <div class="metric-help">今日已回</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ summary.today_failed_targets }}</div>
+      <div class="metric-label">失败</div>
+      <div class="metric-help">待补发</div>
+    </div>
+  </section>
+
+  <div class="button-row">
+    <form method="post" action="/ops/run-now">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="button button-primary" type="submit"><i data-lucide="send"></i>立即执行</button>
+    </form>
+    <form method="post" action="/ops/run-unsent-retry">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="button button-soft" type="submit"><i data-lucide="rotate-cw"></i>补发未发</button>
+    </form>
+    <form method="post" action="/ops/run-failed-retry">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="button button-soft" type="submit"><i data-lucide="refresh-ccw"></i>重发失败</button>
+    </form>
+  </div>
+
+  <div class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">账号明细</h2>
+      <span class="pill">{{ send_console.nowDisplay }}</span>
+    </div>
+
+    {% for account in send_console.accounts %}
+    <section class="panel account-console" id="account-{{ account.unique_id }}">
+      <div class="panel-header">
+        <div>
+          <h2>{{ account.username }} <span class="muted compact">{{ account.unique_id }}</span></h2>
+          <p class="muted compact">
+            <span class="status-chip {{ 'status-ok' if account.online else 'status-error' }}">{{ '在线' if account.online else '掉线' }}</span>
+            已发 {{ account.confirmed_count }}/{{ account.total_targets }} · 已回 {{ account.replied_count }}/{{ account.total_targets }}
+            {% if account.last_error %} · {{ account.last_error }}{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="account-console-body">
+        <div class="account-console-list">
+          {% for target in account.targets %}
+          <div class="account-row">
+            <span class="account-ident">
+              <strong class="account-name">{{ target.remark or target.user_id }}</strong>
+              <small class="muted">{{ target.user_id }}{% if not target.isFriend %} · 已不是好友{% endif %}</small>
+            </span>
+            <span class="status-chip {{ 'status-ok' if target.status == 'confirmed' else ('status-error' if target.status == 'failed' else 'status-pending') }}">
+              {% if target.status == 'confirmed' %}已发送{% elif target.status == 'failed' %}失败{% else %}待发送{% endif %}
+            </span>
+            <span class="status-chip {{ 'status-ok' if target.replied_today else '' }}">{{ '已回复' if target.replied_today else '未回复' }}</span>
+            {% if target.message %}<span class="muted compact">{{ target.message }}</span>{% endif %}
+          </div>
+          {% else %}
+          <div class="empty-state">该账号还没有配置目标好友。</div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% else %}
+    <div class="empty-state">暂无启用账号。</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

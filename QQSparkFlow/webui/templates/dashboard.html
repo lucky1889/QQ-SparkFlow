@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block nav_key %}dashboard{% endblock %}
+{% block title %}首页总览 | QQ 续火花控制台{% endblock %}
+{% block page_title %}首页总览{% endblock %}
+{% block page_subtitle %}今日已发 / 今日已回 · 账号在线状态{% endblock %}
+
+{% block topbar_actions %}
+<a class="ghost-button" href="/ops/send-console">✦ 发送控制台</a>
+{% endblock %}
+
+{% block content %}
+{% set summary = send_console.summary %}
+{% set total = summary.total_targets %}
+{% set confirmed = summary.today_confirmed_targets %}
+{% set replied = summary.today_replied_targets %}
+{% set progress_pct = ((confirmed / total * 100) | round(0, 'floor') | int) if total else 100 %}
+
+<div class="dashboard-stack">
+  <section class="overview-strip" aria-label="今日发送概览">
+    <div class="overview-primary">
+      <strong data-overview-value="progressPercent">{{ progress_pct }}%</strong>
+      <div class="overview-label">今日确认进度</div>
+      <div class="overview-value" data-overview-value="progress">{{ confirmed }}/{{ total }}</div>
+      <div class="overview-help">{{ summary.enabled_accounts }} 个启用账号，共 {{ total }} 个目标好友</div>
+    </div>
+    <div class="overview-cell">
+      <div class="overview-label">下次自动触发</div>
+      <div class="overview-value" data-overview-value="nextTriggerAt">{{ schedule.nextTriggerAt|default("-") }}</div>
+      <div class="overview-help" data-overview-value="scheduleLabel">{{ schedule.label or "-" }}</div>
+    </div>
+    <div class="overview-cell">
+      <div class="overview-label">今日已回复</div>
+      <div class="overview-value" data-overview-value="replied">{{ replied }}/{{ total }}</div>
+      <div class="overview-help">好友回复推断火花续上</div>
+    </div>
+    <div class="overview-cell">
+      <div class="overview-label">需要处理</div>
+      <div class="overview-value" data-overview-value="attention">{{ summary.today_attention_targets }}</div>
+      <div class="overview-help">失败与待发送目标</div>
+    </div>
+  </section>
+
+  <section class="metric-grid" aria-label="今日状态分布">
+    <div class="metric-card">
+      <div class="metric-value" data-overview-value="confirmed">{{ confirmed }}</div>
+      <div class="metric-label">已确认发送</div>
+      <div class="metric-help">OneBot 返回 message_id</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" data-overview-value="replied">{{ replied }}</div>
+      <div class="metric-label">今日已回复</div>
+      <div class="metric-help">命中目标的私聊回复</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" data-overview-value="failed">{{ summary.today_failed_targets }}</div>
+      <div class="metric-label">发送失败</div>
+      <div class="metric-help">40 分钟后自动补发一轮</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" data-overview-value="pending">{{ summary.today_pending_targets }}</div>
+      <div class="metric-label">待发送</div>
+      <div class="metric-help">尚未触发或掉线跳过</div>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">账号状态</h2>
+      <a class="section-link" href="/ops/send-console">查看发送明细</a>
+    </div>
+    <div class="account-summary-list">
+      {% for row in send_console.accounts %}
+      <a class="account-row" href="/ops/send-console#account-{{ row.unique_id }}" data-account-overview="{{ row.unique_id }}">
+        <span class="account-avatar">{{ (row.username or "?")[:1] }}</span>
+        <span class="account-ident">
+          <strong class="account-name">{{ row.username }}</strong>
+          <small class="muted">{% if row.unique_id and row.unique_id != row.account_ref %}{{ row.unique_id }} · {% endif %}{{ row.onebot_service }}</small>
+        </span>
+        <span class="status-chip {{ 'status-ok' if row.online else 'status-error' }}">{{ '在线' if row.online else '掉线' }}</span>
+        <span class="account-console-metrics">
+          <span>已发 <strong>{{ row.confirmed_count }}/{{ row.total_targets }}</strong></span>
+          <span>已回 <strong>{{ row.replied_count }}/{{ row.total_targets }}</strong></span>
+        </span>
+      </a>
+      {% else %}
+      <div class="empty-state">暂无启用账号。请在下方「账号管理」添加账号并填写好友 QQ 号。</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="dashboard-section" id="account-management">
+    <div class="section-header">
+      <h2 class="section-title">账号管理</h2>
+      <span class="pill">账号对应 NapCat 容器服务名</span>
+    </div>
+    <div class="account-management-list">
+      {% for account in accounts %}
+      <form class="panel account-console" method="post" action="/accounts/{{ account.unique_id or account.account_ref }}/update">
+        <div class="panel-header">
+          <div>
+            <h2>{{ account.username }} <span class="muted compact">{{ account.unique_id or "未扫码" }}</span></h2>
+            <p class="muted compact">服务 {{ account.onebot.service }} · 登录后自动回填 QQ 号与昵称</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" name="enabled" value="1" {% if account.enabled %}checked{% endif %}>
+            <span class="toggle-track"></span><span>启用</span>
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            <span class="field-label">显示名</span>
+            <input type="text" name="username" value="{{ account.username }}">
+          </label>
+          <label>
+            <span class="field-label">NapCat 服务名</span>
+            <input type="text" name="service" value="{{ account.onebot.service }}">
+          </label>
+          <label class="span-2">
+            <span class="field-label">好友 QQ 号（逗号分隔）</span>
+            <textarea name="targets" rows="3">{{ account.targets | map(attribute='user_id') | join(', ') }}</textarea>
+          </label>
+        </div>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="button-row">
+          <button class="button button-primary" type="submit">保存</button>
+          <button class="button button-soft" type="submit" formaction="/accounts/{{ account.unique_id or account.account_ref }}/refresh-friends">拉取好友列表校验</button>
+          <button class="button button-danger" type="submit" formaction="/accounts/{{ account.unique_id or account.account_ref }}/delete" data-confirm="确认删除该账号及其发送记录？">删除</button>
+        </div>
+      </form>
+      {% endfor %}
+
+      <form class="panel section-form" method="post" action="/accounts/add">
+        <div class="panel-header">
+          <h2>添加 QQ 账号</h2>
+          <p class="muted compact">先在一键安装脚本中生成 napcat-N 容器，再在这里登记端点。</p>
+        </div>
+        <div class="form-grid">
+          <label>
+            <span class="field-label">显示名</span>
+            <input type="text" name="username" placeholder="主号">
+          </label>
+          <label>
+            <span class="field-label">NapCat 服务名</span>
+            <input type="text" name="service" value="napcat-1">
+          </label>
+          <label class="span-2">
+            <span class="field-label">好友 QQ 号（逗号分隔）</span>
+            <textarea name="targets" rows="3" placeholder="123456789, 987654321"></textarea>
+          </label>
+        </div>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="button-row">
+          <button class="button button-primary" type="submit">添加账号</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {% if is_admin %}
+  <section class="dashboard-section" id="config-panel">
+    <div class="section-header">
+      <h2 class="section-title">运行配置</h2>
+      <a class="section-link" href="/ops/send-console">发送控制台</a>
+    </div>
+    <form class="panel section-form" method="post" action="/settings/runtime">
+      <div class="form-grid">
+        <label>
+          <span class="field-label">每日发送时刻</span>
+          <input type="text" name="dailySendTime" value="{{ config.dailySendTime }}">
+        </label>
+        <label>
+          <span class="field-label">启动抖动（分钟，0 关闭）</span>
+          <input type="number" name="dailySendJitterMinutes" min="0" max="120" value="{{ config.dailySendJitterMinutes }}">
+        </label>
+        <label>
+          <span class="field-label">消息间隔（秒，最小）</span>
+          <input type="number" name="messageIntervalSecondsMin" min="0" value="{{ config.sendStrategy.messageIntervalSecondsMin }}">
+        </label>
+        <label>
+          <span class="field-label">消息间隔（秒，最大）</span>
+          <input type="number" name="messageIntervalSecondsMax" min="0" value="{{ config.sendStrategy.messageIntervalSecondsMax }}">
+        </label>
+        <label class="span-2">
+          <span class="field-label">消息模板变体（每行一条）</span>
+          <textarea name="messageVariants" rows="5">{{ config.sendStrategy.messageVariants | join('\n') }}</textarea>
+        </label>
+        <label class="span-2">
+          <span class="field-label">一言分类（逗号分隔）</span>
+          <input type="text" name="hitokotoTypes" value="{{ config.hitokotoTypes | join(',') }}">
+        </label>
+        <label class="span-2">
+          <span class="toggle-switch">
+            <input type="checkbox" name="happyNewYearEnabled" value="1" {% if config.happyNewYear.enabled %}checked{% endif %}>
+            <span class="toggle-track"></span><span>节日模式（春节祝福）</span>
+          </span>
+        </label>
+      </div>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="button-row">
+        <button class="button button-primary" type="submit">保存配置</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="dashboard-section" id="settings-panel">
+    <div class="section-header">
+      <h2 class="section-title">系统设置</h2>
+    </div>
+    <div class="form-grid">
+      <form class="panel section-form" method="post" action="/admin/change-password">
+        <div class="panel-header"><h2>修改管理员密码</h2></div>
+        <div class="form-grid">
+          <label><span class="field-label">当前密码</span><input type="password" name="current_password"></label>
+          <label><span class="field-label">新密码</span><input type="password" name="new_password"></label>
+        </div>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="button button-primary" type="submit">修改密码</button>
+      </form>
+
+      <form class="panel section-form" method="post" action="/admin/users">
+        <div class="panel-header"><h2>添加普通用户</h2></div>
+        <div class="form-grid">
+          <label><span class="field-label">用户名</span><input type="text" name="username"></label>
+          <label><span class="field-label">密码</span><input type="password" name="password"></label>
+          <label class="span-2"><span class="field-label">可访问账号（留空为全部）</span><input type="text" name="account_refs" placeholder="acc-xxx, acc-yyy"></label>
+        </div>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="button button-primary" type="submit">创建用户</button>
+      </form>
+
+      <div class="panel">
+        <div class="panel-header"><h2>现有用户</h2></div>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th>用户名</th><th>角色</th><th>可见账号</th><th></th></tr></thead>
+            <tbody>
+              {% for user in web_users %}
+              <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ '管理员' if user.role == 'admin' else '普通用户' }}</td>
+                <td>{{ user.account_refs | join(', ') or '全部' }}</td>
+                <td>
+                  {% if user.role != 'admin' %}
+                  <form method="post" action="/admin/users/{{ user.username }}/delete" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button class="button button-quiet" type="submit" data-confirm="确认删除用户 {{ user.username }}？">删除</button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

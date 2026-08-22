@@ -1,0 +1,18 @@
+[
+  {
+    "account_ref": "acc-1",
+    "unique_id": "",
+    "username": "账号1",
+    "enabled": true,
+    "onebot": {
+      "service": "napcat-1",
+      "http_url": "http://napcat-1:3000",
+      "ws_url": "ws://napcat-1:3001",
+      "access_token": ""
+    },
+    "targets": [
+      {"user_id": "123456789", "remark": "小明"}
+    ],
+    "message_history": {}
+  }
+]
