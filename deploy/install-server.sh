@@ -166,21 +166,11 @@ generate_override() {
 }
 
 run_setup_napcat() {
-  local args=(
-    --count "$QQ_ACCOUNT_COUNT"
-    --token "$ONEBOT_ACCESS_TOKEN"
-    --state-dir "$APP_ROOT/state"
-    --users-data "$APP_ROOT/QQSparkFlow/usersData.json"
-  )
-  if command -v python3 >/dev/null 2>&1; then
-    run_root python3 "$APP_ROOT/QQSparkFlow/scripts/setup_napcat.py" "${args[@]}"
-  else
-    log "python3 not found; using the python:3.11-slim container for setup"
-    run_root docker run --rm -v "$APP_ROOT":/work -w /work python:3.11-slim \
-      python QQSparkFlow/scripts/setup_napcat.py --count "$QQ_ACCOUNT_COUNT" \
-      --token "$ONEBOT_ACCESS_TOKEN" --state-dir /work/state \
-      --users-data /work/QQSparkFlow/usersData.json
-  fi
+  log "Running setup_napcat.py with python:3.11-slim"
+  run_root docker run --rm -v "$APP_ROOT":/work -w /work python:3.11-slim \
+    python QQSparkFlow/scripts/setup_napcat.py --count "$QQ_ACCOUNT_COUNT" \
+    --token "$ONEBOT_ACCESS_TOKEN" --state-dir /work/state \
+    --users-data /work/QQSparkFlow/usersData.json
 }
 
 cron_line_for() {
