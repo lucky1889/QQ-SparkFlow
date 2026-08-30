@@ -110,6 +110,51 @@ class WebUiSafetyTests(unittest.TestCase):
                     response = client.get(path)
                     self.assertEqual(200, response.status_code, path)
 
+    def test_update_account_falls_back_to_account_ref_before_qq_login(self):
+        account = {
+            "account_ref": "acc-1",
+            "unique_id": "",
+            "username": "账号1",
+            "enabled": True,
+            "onebot": {
+                "service": "napcat-1",
+                "http_url": "http://napcat-1:3000",
+                "ws_url": "ws://napcat-1:3001",
+                "access_token": "",
+            },
+            "targets": [],
+            "message_history": {},
+        }
+        principal = {
+            "username": "admin",
+            "role": "admin",
+            "account_refs": [],
+            "session_id": "s",
+            "enabled": True,
+        }
+
+        with (
+            patch.object(app_module, "get_userData", return_value=[account]),
+            patch.object(app_module, "current_user", return_value="admin"),
+            patch.object(app_module, "current_principal", return_value=principal),
+            patch.object(app_module, "validate_csrf", return_value=True),
+            patch.object(app_module.accounts_module, "update_account") as update,
+        ):
+            with TestClient(app_module.app, raise_server_exceptions=False) as client:
+                response = client.post(
+                    "/accounts/acc-1/update",
+                    data={
+                        "csrf_token": "x",
+                        "username": "账号1",
+                        "enabled": "1",
+                        "targets": "123",
+                    },
+                    follow_redirects=False,
+                )
+
+        self.assertEqual(303, response.status_code)
+        self.assertEqual(1, update.call_count)
+
 
 if __name__ == "__main__":
     unittest.main()

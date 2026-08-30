@@ -50,6 +50,7 @@ from webui.ops import (
 )
 from webui.users import (
     UserStoreError,
+    account_by_ref,
     account_by_unique_id,
     can_access_account,
     create_web_user,
@@ -186,7 +187,7 @@ def create_app():
 
     def account_for_request(request, unique_id):
         accounts = scoped_accounts(request)
-        account = account_by_unique_id(accounts, unique_id)
+        account = account_by_unique_id(accounts, unique_id) or account_by_ref(accounts, unique_id)
         if not account:
             return accounts, None, PlainTextResponse("Account not found", status_code=404)
         if not can_access_account(principal(request), account):
