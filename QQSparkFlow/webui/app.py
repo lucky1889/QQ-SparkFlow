@@ -411,6 +411,9 @@ def create_app():
         hitokoto_types = _dedupe(str(form.get("hitokotoTypes") or "").replace(",", "\n").splitlines())
         if hitokoto_types:
             config["hitokotoTypes"] = hitokoto_types
+        config.setdefault("imageMode", {})
+        config["imageMode"]["enabled"] = _form_bool(form, "imageModeEnabled")
+        config["imageMode"]["images"] = _dedupe(str(form.get("imageModeImages") or "").splitlines())
         config["dailySendTime"] = str(form.get("dailySendTime") or config.get("dailySendTime") or "10:00")
         try:
             config["dailySendJitterMinutes"] = max(0, int(form.get("dailySendJitterMinutes") or 0))

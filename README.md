@@ -92,7 +92,7 @@ qq-sparkflow/
 
 ## 配置
 
-- `QQSparkFlow/config.json`：消息模板、发送策略、每日时刻、一言分类、节日模式（首次运行自动生成）。
+- `QQSparkFlow/config.json`：消息模板、发送策略、每日时刻、图片模式、一言分类、节日模式（首次运行自动生成）。
 - `QQSparkFlow/usersData.json`：账号列表与好友列表（由安装脚本生成骨架，Web UI 填写好友）。
 
 账号数据结构：

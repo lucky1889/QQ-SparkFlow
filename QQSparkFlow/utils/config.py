@@ -38,6 +38,10 @@ DEFAULT_CONFIG = {
     },
     "dailySendTime": "10:00",
     "dailySendJitterMinutes": 20,
+    "imageMode": {
+        "enabled": False,
+        "images": [],
+    },
     "hitokotoTypes": [
         "文学",
         "影视",

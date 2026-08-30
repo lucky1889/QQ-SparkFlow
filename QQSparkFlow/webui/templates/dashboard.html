@@ -186,6 +186,16 @@
           <textarea name="messageVariants" rows="5">{{ config.sendStrategy.messageVariants | join('\n') }}</textarea>
         </label>
         <label class="span-2">
+          <span class="field-label">图片地址（每行一个，启用后不发送文字）</span>
+          <textarea name="imageModeImages" rows="4" placeholder="https://example.com/image.png">{{ config.imageMode.images | join('\n') }}</textarea>
+        </label>
+        <label class="span-2">
+          <span class="toggle-switch">
+            <input type="checkbox" name="imageModeEnabled" value="1" {% if config.imageMode.enabled %}checked{% endif %}>
+            <span class="toggle-track"></span><span>图片模式（只发图片，不发文字）</span>
+          </span>
+        </label>
+        <label class="span-2">
           <span class="field-label">一言分类（逗号分隔）</span>
           <input type="text" name="hitokotoTypes" value="{{ config.hitokotoTypes | join(',') }}">
         </label>

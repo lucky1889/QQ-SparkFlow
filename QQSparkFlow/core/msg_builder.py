@@ -42,6 +42,14 @@ def _get_message_templates(active_config: dict) -> List[str]:
     return [str(active_config.get("messageTemplate", "续火花")).strip()]
 
 
+def _get_image_candidates(active_config: dict) -> List[str]:
+    image_mode = active_config.get("imageMode") or {}
+    if not bool(image_mode.get("enabled")):
+        return []
+    images = [str(item).strip() for item in image_mode.get("images", []) if str(item).strip()]
+    return [f"[CQ:image,file={image}]" for image in images]
+
+
 def _render_regular_message(template: str) -> str:
     message = template
     if "[API]" in message:
@@ -55,6 +63,10 @@ def build_message_candidates(config: Optional[dict] = None) -> List[str]:
 
     if _is_holiday_mode_enabled(active_config, today):
         return [_render_holiday_message(active_config, today)]
+
+    image_candidates = _get_image_candidates(active_config)
+    if image_candidates:
+        return image_candidates
 
     candidates: List[str] = []
     for template in _get_message_templates(active_config):
